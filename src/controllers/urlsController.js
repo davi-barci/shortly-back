@@ -7,10 +7,25 @@ export async function createShortUrl (req, res) {
     const userId = res.locals.user.id;
 
     try {
-        const insertUrl = await db.query(`
-        INSERT INTO urls (url, "shortUrl", "userId") 
+        await db.query(`INSERT INTO urls (url, "shortUrl", "userId") 
         VALUES ($1, $2, $3)`, [url,shortUrl, userId]);
         return res.status(201).send({id: userId, shortUrl: shortUrl});
+    } catch (err) {
+        return res.status(500).send(err.message);
+    }
+}
+
+export async function getUrlById (req, res) {
+    const { id } = req.params;
+
+    try {
+        const url = await db.query(`SELECT * FROM urls WHERE id=$1`, [id]);
+        if (!url.rowCount) return res.sendStatus(404);
+        return res.status(200).send({
+            id: url.rows[0].id,
+            shortUrl: url.rows[0].shortUrl,
+            url: url.rows[0].url,
+        });
     } catch (err) {
         return res.status(500).send(err.message);
     }
