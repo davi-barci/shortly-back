@@ -47,3 +47,18 @@ export async function openUrl (req, res) {
     }
 }
 
+export async function deleteUrl (req, res) {
+    const { id } = req.params;
+    const userId = res.locals.user.id;
+
+    try {
+        const url = await db.query(`SELECT * FROM urls WHERE id=$1
+        `, [id]);
+        if (!url.rowCount) return res.sendStatus(404);
+        if (url.rows[0].userId != userId) return res.sendStatus(401);
+        await db.query(`DELETE FROM urls WHERE id=$1`, [id]);
+        return res.sendStatus(204);
+    } catch (err) {
+        return res.status(500).send(err.message);
+    }
+}
